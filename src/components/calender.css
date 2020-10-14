@@ -1,0 +1,31 @@
+.calender {
+  width: 450px;
+  background-color: #eee;
+}
+
+.calender .header {
+  padding: 15px 0;
+}
+
+.calender .container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.calender .container .item {
+  box-sizing: border-box;
+  width: 60px;
+  height: 60px;
+  margin: 2px;
+  background: #fff;
+  border-radius: 5px;
+  line-height: 20px;
+  text-align: left;
+  padding: 10px;
+}
+
+.calender .container .item-text {
+  background-color: #eee;
+  height: auto;
+  text-align: center;
+}
