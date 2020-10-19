@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import Calender from './calendar';
+import React, { useState } from "react";
+import Calender from "./calendar";
 import {
   getCurrentYear,
   getCurrentMonth,
@@ -8,7 +8,7 @@ import {
   isHistoryMonth,
   getDaysBetween,
   getDiffDate,
-} from '../utils';
+} from "../utils";
 
 const now = new Date();
 
@@ -64,19 +64,24 @@ const AuntCalender = ({
 
   const collectDuringMonthPeriod = (
     basePeriodStart,
+    endRemainder,
     endCycleAmount,
     startCycleAmount
   ) => {
-    const diffCycleAmount = endCycleAmount - startCycleAmount - 1;
+    let distanceCycleAmount = endCycleAmount - startCycleAmount;
     const periods = [];
 
-    if (diffCycleAmount >= 1) {
+    if (distanceCycleAmount >= 1) {
+      if (endRemainder < duration) {
+        distanceCycleAmount = distanceCycleAmount - 1;
+      }
+
       let periodStart = inOrdecreaseDate(
         basePeriodStart,
         startCycleAmount * cycle
       );
 
-      for (let i = 1; i < diffCycleAmount + 1; i++) {
+      for (let i = 1; i < distanceCycleAmount + 1; i++) {
         periodStart = inOrdecreaseDate(periodStart, i * cycle);
         const periodEnd = inOrdecreaseDate(periodStart, duration);
         periods.push(getDiffDate(periodStart, periodEnd));
@@ -87,7 +92,7 @@ const AuntCalender = ({
   };
 
   // prdict peroids with month.
-  const predictPeriods = ({year, month}) => {
+  const predictPeriods = ({ year, month }) => {
     if (!lastPeriodStart) return;
     const basePeriodStart = getBasePeriodStart();
     const monthDayNumbers = getDayNumbers(year, month);
@@ -114,6 +119,7 @@ const AuntCalender = ({
 
     const duringMonethPeroids = collectDuringMonthPeriod(
       basePeriodStart,
+      endRemainder,
       endCycleAmount,
       startCycleAmount
     );
@@ -125,21 +131,21 @@ const AuntCalender = ({
     console.log(no);
   };
 
-  const handleMonthChange = ({year, month}) => {
+  const handleMonthChange = ({ year, month }) => {
     console.log(year, month);
-    const historyMonth = isHistoryMonth({year, month});
+    const historyMonth = isHistoryMonth({ year, month });
     // if now or future month, then predict periods.
     // other ways, then request real periods.
     if (!historyMonth) {
-      predictPeriods({year, month});
+      predictPeriods({ year, month });
       return;
     }
-    onHistoryMonth({year, month});
+    onHistoryMonth({ year, month });
   };
 
   const highlights = [
-    {className: 'pink', group: [1, 2, 3, 4, 5]},
-    {className: 'pink', group: [20, 21, 22, 23, 24]},
+    { className: "pink", group: [1, 2, 3, 4, 5] },
+    { className: "pink", group: [20, 21, 22, 23, 24] },
   ];
 
   return (
