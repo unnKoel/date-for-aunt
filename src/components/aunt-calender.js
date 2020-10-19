@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import Calender from "./calendar";
+import React, {useState, useCallback} from 'react';
+import Calender from './calendar';
 import {
   getCurrentYear,
   getCurrentMonth,
@@ -8,9 +8,11 @@ import {
   isHistoryMonth,
   getDaysBetween,
   getDiffDate,
-} from "../utils";
+  getCurrentDate,
+} from '../utils';
+import {useEffect} from 'react';
 
-const now = new Date();
+const today = getCurrentDate();
 
 const AuntCalender = ({
   lastPeriodStart,
@@ -19,141 +21,168 @@ const AuntCalender = ({
   periods,
   onHistoryMonth = () => {},
 }) => {
-  // const [year, setYear] = useState(getCurrentYear());
-  // const [month, setMonth] = useState(getCurrentMonth());
+  const [predictedPeriods, setPredictedPeriods] = useState([]);
 
-  const getBasePeriodStart = () => {
+  const getBasePeriodStart = useCallback(() => {
     let basePeriodStart;
     const predictStartDate = inOrdecreaseDate(lastPeriodStart, cycle);
-    if (predictStartDate.getTime() < now.getTime()) {
-      basePeriodStart = now;
+    if (predictStartDate.getTime() < today.getTime()) {
+      basePeriodStart = today;
     } else {
       basePeriodStart = lastPeriodStart;
     }
 
     return basePeriodStart;
-  };
+  }, [cycle, lastPeriodStart]);
 
-  const collectMonthStartPeriod = (startRemainder, monthStartDate) => {
-    if (startRemainder < duration) {
-      const periodDays = duration - startRemainder;
-      const endDate = inOrdecreaseDate(monthStartDate, periodDays);
-      return getDiffDate(monthStartDate, endDate);
-    }
+  const collectMonthStartPeriod = useCallback(
+    (startRemainder, monthStartDate) => {
+      if (startRemainder < duration) {
+        const periodDays = duration - startRemainder;
+        const endDate = inOrdecreaseDate(monthStartDate, periodDays);
+        return getDiffDate(monthStartDate, endDate);
+      }
 
-    return [];
-  };
+      return [];
+    },
+    [duration]
+  );
 
-  const collectMonthEndPeriod = (
-    endRemainder,
-    monthStartDate,
-    monthDayNumbers
-  ) => {
-    if (endRemainder < duration) {
-      const periodDays = endRemainder;
-      const startDate = inOrdecreaseDate(
-        monthStartDate,
-        monthDayNumbers - periodDays
-      );
-      const endDate = inOrdecreaseDate(monthStartDate, monthDayNumbers);
-      return getDiffDate(startDate, endDate);
-    }
-
-    return [];
-  };
-
-  const collectDuringMonthPeriod = (
-    basePeriodStart,
-    endRemainder,
-    endCycleAmount,
-    startCycleAmount
-  ) => {
-    let distanceCycleAmount = endCycleAmount - startCycleAmount;
-    const periods = [];
-
-    if (distanceCycleAmount >= 1) {
+  const collectMonthEndPeriod = useCallback(
+    (endRemainder, monthStartDate, monthDayNumbers) => {
       if (endRemainder < duration) {
-        distanceCycleAmount = distanceCycleAmount - 1;
+        const periodDays = endRemainder;
+        const startDate = inOrdecreaseDate(
+          monthStartDate,
+          monthDayNumbers - periodDays
+        );
+        const endDate = inOrdecreaseDate(monthStartDate, monthDayNumbers);
+        return getDiffDate(startDate, endDate);
       }
 
-      let periodStart = inOrdecreaseDate(
-        basePeriodStart,
-        startCycleAmount * cycle
-      );
+      return [];
+    },
+    [duration]
+  );
 
-      for (let i = 1; i < distanceCycleAmount + 1; i++) {
-        periodStart = inOrdecreaseDate(periodStart, i * cycle);
-        const periodEnd = inOrdecreaseDate(periodStart, duration);
-        periods.push(getDiffDate(periodStart, periodEnd));
+  const collectDuringMonthPeriod = useCallback(
+    (basePeriodStart, endRemainder, endCycleAmount, startCycleAmount) => {
+      let distanceCycleAmount = endCycleAmount - startCycleAmount;
+      const periods = [];
+
+      if (distanceCycleAmount >= 1) {
+        if (endRemainder < duration) {
+          distanceCycleAmount = distanceCycleAmount - 1;
+        }
+
+        let periodStart = inOrdecreaseDate(
+          basePeriodStart,
+          startCycleAmount * cycle
+        );
+
+        for (let i = 1; i < distanceCycleAmount + 1; i++) {
+          periodStart = inOrdecreaseDate(periodStart, i * cycle);
+          const periodEnd = inOrdecreaseDate(periodStart, duration);
+          periods.push(getDiffDate(periodStart, periodEnd));
+        }
       }
-    }
 
-    return periods;
-  };
+      return periods;
+    },
+    [cycle, duration]
+  );
 
   // prdict peroids with month.
-  const predictPeriods = ({ year, month }) => {
-    if (!lastPeriodStart) return;
-    const basePeriodStart = getBasePeriodStart();
-    const monthDayNumbers = getDayNumbers(year, month);
-    const monthStartDate = new Date(year, month - 1, 1);
-    const distanceWithStart = getDaysBetween(basePeriodStart, monthStartDate);
-    const distanceWithEnd = distanceWithStart + monthDayNumbers;
-    // compute the cycle number and remainder during month.
-    const startRemainder = distanceWithStart % cycle;
-    const startCycleAmount = parseInt(distanceWithStart / cycle);
+  const predictPeriods = useCallback(
+    ({year, month}) => {
+      if (!lastPeriodStart) return [];
+      const basePeriodStart = getBasePeriodStart();
+      const monthDayNumbers = getDayNumbers(year, month);
+      const monthStartDate = new Date(year, month - 1, 1);
+      const distanceWithStart = getDaysBetween(basePeriodStart, monthStartDate);
+      // compute the cycle number and remainder during month.
+      // debugger;
+      const sectionStart = distanceWithStart < 0 ? 0 : distanceWithStart;
+      const sectionEnd = distanceWithStart + monthDayNumbers;
 
-    const endRemainder = distanceWithEnd % cycle;
-    const endCycleAmount = parseInt(distanceWithEnd / cycle);
+      const startRemainder = sectionStart % cycle;
+      const startCycleAmount = parseInt(sectionStart / cycle);
 
-    const monthStartPeriod = collectMonthStartPeriod(
-      startRemainder,
-      monthStartDate
-    );
+      const endRemainder = sectionEnd % cycle;
+      const endCycleAmount = parseInt(sectionEnd / cycle);
 
-    const monthEndPeriod = collectMonthEndPeriod(
-      endRemainder,
-      monthStartDate,
-      monthDayNumbers
-    );
+      const monthStartPeriod = collectMonthStartPeriod(
+        startRemainder,
+        distanceWithStart < 0 ? today : monthStartDate
+      );
 
-    const duringMonethPeroids = collectDuringMonthPeriod(
-      basePeriodStart,
-      endRemainder,
-      endCycleAmount,
-      startCycleAmount
-    );
+      const monthEndPeriod = collectMonthEndPeriod(
+        endRemainder,
+        monthStartDate,
+        monthDayNumbers
+      );
 
-    return duringMonethPeroids.push(monthStartPeriod).push(monthEndPeriod);
-  };
+      const duringMonethPeroids = collectDuringMonthPeriod(
+        basePeriodStart,
+        endRemainder,
+        endCycleAmount,
+        startCycleAmount
+      );
+
+      return [...duringMonethPeroids, monthStartPeriod, monthEndPeriod]
+        .filter((item) => !!item.length)
+        .map((group) => ({className: 'pink', group}));
+    },
+    [
+      collectDuringMonthPeriod,
+      collectMonthEndPeriod,
+      collectMonthStartPeriod,
+      cycle,
+      getBasePeriodStart,
+      lastPeriodStart,
+    ]
+  );
 
   const handleDaySelect = (no) => {
     console.log(no);
   };
 
-  const handleMonthChange = ({ year, month }) => {
+  const handleMonthChange = ({year, month}) => {
     console.log(year, month);
-    const historyMonth = isHistoryMonth({ year, month });
+    const historyMonth = isHistoryMonth({year, month});
     // if now or future month, then predict periods.
     // other ways, then request real periods.
     if (!historyMonth) {
-      predictPeriods({ year, month });
+      const predictedPeriods = predictPeriods({year, month});
+      console.log('predictedPeriods', predictedPeriods);
+      setPredictedPeriods(predictedPeriods);
       return;
     }
-    onHistoryMonth({ year, month });
+    onHistoryMonth({year, month});
   };
 
   const highlights = [
-    { className: "pink", group: [1, 2, 3, 4, 5] },
-    { className: "pink", group: [20, 21, 22, 23, 24] },
+    {className: 'pink', group: [1, 2, 3, 4, 5]},
+    {className: 'pink', group: [20, 21, 22, 23, 24]},
   ];
+
+  useEffect(() => {
+    const currentYear = getCurrentYear();
+    const currentMonth = getCurrentMonth();
+    const predictedPeriods = predictPeriods({
+      year: currentYear,
+      month: currentMonth,
+    });
+    console.log('predictedPeriods', predictedPeriods);
+    setPredictedPeriods(predictedPeriods);
+  }, [predictPeriods]);
 
   return (
     <div className="App">
       <Calender
         onDaySelect={handleDaySelect}
         onMonthChange={handleMonthChange}
-        highlights={highlights}
+        highlights={predictedPeriods}
       />
     </div>
   );

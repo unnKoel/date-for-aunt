@@ -33,21 +33,18 @@ function getDiffDate(start, end) {
     var year = startTime.getFullYear();
     var month =
       (startTime.getMonth() + 1).toString().length === 1
-        ? '0' + (parseInt(startTime.getMonth().toString(), 10) + 1)
+        ? parseInt(startTime.getMonth().toString(), 10) + 1
         : startTime.getMonth() + 1;
-    var day =
-      startTime.getDate().toString().length === 1
-        ? '0' + startTime.getDate()
-        : startTime.getDate();
+    var day = startTime.getDate();
     dateArr.push({year, month, day});
     startTime.setDate(startTime.getDate() + 1);
   }
   return dateArr;
 }
 
-function inOrdecreaseDate(date, addDayCount) {
-  var dd = new Date();
-  dd.setDate(date.getDate() + addDayCount);
+function inOrdecreaseDate(date, days) {
+  const dd = new Date(date);
+  dd.setDate(dd.getDate() + days);
   return dd;
 }
 
@@ -78,6 +75,14 @@ function getDaysBetween(startDate, endDate) {
   return days;
 }
 
+function getCurrentDate() {
+  const year = getCurrentYear();
+  const month = getCurrentMonth();
+  const date = new Date().getDate();
+
+  return new Date(year, month - 1, date);
+}
+
 export {
   getCurrentYear,
   getCurrentMonth,
@@ -89,4 +94,5 @@ export {
   formatDate,
   isHistoryMonth,
   getDaysBetween,
+  getCurrentDate,
 };

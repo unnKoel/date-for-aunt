@@ -17,22 +17,26 @@ const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
 
   const handlePrevMonth = () => {
     let prevMonth = month - 1;
+    let currentYear = year;
     if (prevMonth < 1) {
-      setYear((year) => year - 1);
+      currentYear = year - 1;
+      setYear(currentYear);
       prevMonth = 12;
     }
     setMonth(prevMonth);
-    onMonthChange({year, month: prevMonth});
+    onMonthChange({year: currentYear, month: prevMonth});
   };
 
   const handleNextMonth = () => {
     let nextMonth = month + 1;
+    let currentYear = year;
     if (nextMonth > 12) {
-      setYear((year) => year + 1);
+      currentYear = year + 1;
+      setYear(currentYear);
       nextMonth = 1;
     }
     setMonth(nextMonth);
-    onMonthChange({year, month: nextMonth});
+    onMonthChange({year: currentYear, month: nextMonth});
   };
 
   return (
@@ -75,9 +79,9 @@ const CalenderBody = ({
 }) => {
   const calDayPostion = (day, group) => {
     let position = 'middle';
-    if (group[0] === day) {
+    if (group[0]?.day === day) {
       position = 'start';
-    } else if (group[group.length - 1] === day) {
+    } else if (group[group.length - 1]?.day === day) {
       position = 'end';
     }
 
@@ -87,7 +91,7 @@ const CalenderBody = ({
   const calDayStatus = useCallback((day, highlights) => {
     for (let i = 0; i < highlights.length; i++) {
       const {group = [], className = ''} = highlights[i];
-      if (group.includes(day)) {
+      if (group.find(({day: date}) => date === day)) {
         return {
           no: day,
           className: className,
@@ -107,8 +111,6 @@ const CalenderBody = ({
     for (let i = 1; i <= dayNumbers; i++) {
       list.push(calDayStatus(i, highlights));
     }
-
-    console.log(list);
 
     return list.concat(Array(6 - weekDayForLastDay).fill({}));
   }, [
