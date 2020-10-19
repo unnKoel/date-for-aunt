@@ -7,7 +7,7 @@ import {
 } from '../utils';
 import './calender.css';
 
-const Calender = ({onDaySelect, highlights}) => {
+const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
   const [year, setYear] = useState(getCurrentYear());
   const [month, setMonth] = useState(getCurrentMonth());
 
@@ -16,23 +16,23 @@ const Calender = ({onDaySelect, highlights}) => {
   const weekDayForLastDay = getWeekDay(year, month, dayNumbers);
 
   const handlePrevMonth = () => {
-    const prevMonth = month - 1;
+    let prevMonth = month - 1;
     if (prevMonth < 1) {
       setYear((year) => year - 1);
-      setMonth(1);
-    } else {
-      setMonth(prevMonth);
+      prevMonth = 12;
     }
+    setMonth(prevMonth);
+    onMonthChange({year, month: prevMonth});
   };
 
   const handleNextMonth = () => {
-    const nextMonth = month + 1;
+    let nextMonth = month + 1;
     if (nextMonth > 12) {
       setYear((year) => year + 1);
-      setMonth(1);
-    } else {
-      setMonth(nextMonth);
+      nextMonth = 1;
     }
+    setMonth(nextMonth);
+    onMonthChange({year, month: nextMonth});
   };
 
   return (
@@ -47,6 +47,8 @@ const Calender = ({onDaySelect, highlights}) => {
         dayNumbers={dayNumbers}
         weekDayForFirstDay={weekDayForFirstDay}
         weekDayForLastDay={weekDayForLastDay}
+        onDaySelect={onDaySelect}
+        highlights={highlights}
       />
     </div>
   );
@@ -64,15 +66,58 @@ const CalenderHeader = ({year, month, onPrevMonth, onNextMonth}) => {
   );
 };
 
-const CalenderBody = ({dayNumbers, weekDayForFirstDay, weekDayForLastDay}) => {
-  const fillinList = useCallback(() => {
-    const list = Array(weekDayForFirstDay).fill({});
-    for (let i = 1; i <= dayNumbers; i++) {
-      list.push({no: i});
+const CalenderBody = ({
+  dayNumbers,
+  weekDayForFirstDay,
+  weekDayForLastDay,
+  onDaySelect,
+  highlights,
+}) => {
+  const calDayPostion = (day, group) => {
+    let position = 'middle';
+    if (group[0] === day) {
+      position = 'start';
+    } else if (group[group.length - 1] === day) {
+      position = 'end';
     }
 
+    return position;
+  };
+
+  const calDayStatus = useCallback((day, highlights) => {
+    for (let i = 0; i < highlights.length; i++) {
+      const {group = [], className = ''} = highlights[i];
+      if (group.includes(day)) {
+        return {
+          no: day,
+          className: className,
+          position: calDayPostion(day, group),
+        };
+      }
+    }
+
+    return {
+      no: day,
+    };
+  }, []);
+
+  const fillinList = useCallback(() => {
+    const list = Array(weekDayForFirstDay).fill({});
+
+    for (let i = 1; i <= dayNumbers; i++) {
+      list.push(calDayStatus(i, highlights));
+    }
+
+    console.log(list);
+
     return list.concat(Array(6 - weekDayForLastDay).fill({}));
-  }, [dayNumbers, weekDayForFirstDay, weekDayForLastDay]);
+  }, [
+    calDayStatus,
+    dayNumbers,
+    highlights,
+    weekDayForFirstDay,
+    weekDayForLastDay,
+  ]);
 
   const [list, setList] = useState([]);
   const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
@@ -82,6 +127,12 @@ const CalenderBody = ({dayNumbers, weekDayForFirstDay, weekDayForLastDay}) => {
     setList(fillList);
   }, [fillinList]);
 
+  const handleDayClick = (no) => (e) => {
+    if (no) {
+      onDaySelect(no);
+    }
+  };
+
   return (
     <div>
       <div className="container">
@@ -90,8 +141,13 @@ const CalenderBody = ({dayNumbers, weekDayForFirstDay, weekDayForLastDay}) => {
         ))}
       </div>
       <div className="container">
-        {list.map(({no, className}) => (
-          <div className={`item ${className}`}>{no || ''}</div>
+        {list.map(({no, className, position}) => (
+          <div className={`item ${className}`} onClick={handleDayClick(no)}>
+            <div>{no || ''}</div>
+            <div>
+              {position === 'start' ? '>' : position === 'end' ? '=' : ''}
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -1,13 +1,9 @@
 import React from 'react';
 import './App.css';
-import Calender from './components/calendar';
+import AuntCalender from './components/aunt-calender';
 
 function App() {
-  return (
-    <div className="App">
-      <Calender />
-    </div>
-  );
+  return <AuntCalender />;
 }
 
 export default App;
