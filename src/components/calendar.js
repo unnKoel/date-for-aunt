@@ -1,13 +1,13 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   getCurrentYear,
   getCurrentMonth,
   getDayNumbers,
   getWeekDay,
-} from '../utils';
-import './calender.css';
+} from "../utils";
+import "./calender.css";
 
-const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
+const Calender = ({ onDaySelect, onMonthChange, highlights = [] }) => {
   const [year, setYear] = useState(getCurrentYear());
   const [month, setMonth] = useState(getCurrentMonth());
 
@@ -24,7 +24,7 @@ const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
       prevMonth = 12;
     }
     setMonth(prevMonth);
-    onMonthChange({year: currentYear, month: prevMonth});
+    onMonthChange({ year: currentYear, month: prevMonth });
   };
 
   const handleNextMonth = () => {
@@ -36,7 +36,7 @@ const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
       nextMonth = 1;
     }
     setMonth(nextMonth);
-    onMonthChange({year: currentYear, month: nextMonth});
+    onMonthChange({ year: currentYear, month: nextMonth });
   };
 
   return (
@@ -48,6 +48,8 @@ const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
         onNextMonth={handleNextMonth}
       />
       <CalenderBody
+        year={year}
+        month={month}
         dayNumbers={dayNumbers}
         weekDayForFirstDay={weekDayForFirstDay}
         weekDayForLastDay={weekDayForLastDay}
@@ -58,7 +60,7 @@ const Calender = ({onDaySelect, onMonthChange, highlights = []}) => {
   );
 };
 
-const CalenderHeader = ({year, month, onPrevMonth, onNextMonth}) => {
+const CalenderHeader = ({ year, month, onPrevMonth, onNextMonth }) => {
   return (
     <div className="header">
       <span onClick={onPrevMonth}>≤</span>
@@ -71,6 +73,8 @@ const CalenderHeader = ({year, month, onPrevMonth, onNextMonth}) => {
 };
 
 const CalenderBody = ({
+  year,
+  month,
   dayNumbers,
   weekDayForFirstDay,
   weekDayForLastDay,
@@ -78,32 +82,40 @@ const CalenderBody = ({
   highlights,
 }) => {
   const calDayPostion = (day, group) => {
-    let position = 'middle';
+    let position = "middle";
     if (group[0]?.day === day) {
-      position = 'start';
+      position = "start";
     } else if (group[group.length - 1]?.day === day) {
-      position = 'end';
+      position = "end";
     }
 
     return position;
   };
 
-  const calDayStatus = useCallback((day, highlights) => {
-    for (let i = 0; i < highlights.length; i++) {
-      const {group = [], className = ''} = highlights[i];
-      if (group.find(({day: date}) => date === day)) {
-        return {
-          no: day,
-          className: className,
-          position: calDayPostion(day, group),
-        };
+  const calDayStatus = useCallback(
+    (day, highlights) => {
+      for (let i = 0; i < highlights.length; i++) {
+        const { group = [], className = "" } = highlights[i];
+        if (
+          group.find(
+            ({ day: itemDay, year: itemYear, month: itemMonth }) =>
+              itemDay === day && itemYear === year && itemMonth === month
+          )
+        ) {
+          return {
+            no: day,
+            className: className,
+            // position: calDayPostion(day, group),
+          };
+        }
       }
-    }
 
-    return {
-      no: day,
-    };
-  }, []);
+      return {
+        no: day,
+      };
+    },
+    [year, month]
+  );
 
   const fillinList = useCallback(() => {
     const list = Array(weekDayForFirstDay).fill({});
@@ -122,7 +134,7 @@ const CalenderBody = ({
   ]);
 
   const [list, setList] = useState([]);
-  const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
+  const weekdayNames = ["日", "一", "二", "三", "四", "五", "六"];
 
   useEffect(() => {
     const fillList = fillinList();
@@ -139,15 +151,21 @@ const CalenderBody = ({
     <div>
       <div className="container">
         {weekdayNames.map((text) => (
-          <div className="item item-text">{text}</div>
+          <div className="item item-text" key={text}>
+            {text}
+          </div>
         ))}
       </div>
       <div className="container">
-        {list.map(({no, className, position}) => (
-          <div className={`item ${className}`} onClick={handleDayClick(no)}>
-            <div>{no || ''}</div>
+        {list.map(({ no, className, position }) => (
+          <div
+            className={`item ${className}`}
+            onClick={handleDayClick(no)}
+            key={no}
+          >
+            <div>{no || ""}</div>
             <div>
-              {position === 'start' ? '>' : position === 'end' ? '=' : ''}
+              {position === "start" ? ">" : position === "end" ? "=" : ""}
             </div>
           </div>
         ))}

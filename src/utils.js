@@ -10,10 +10,10 @@ const getWeekDay = (year, month, day) =>
  **return Date 对象
  **/
 function getDate(datestr) {
-  var temp = datestr.split('-');
-  if (temp[1] === '01') {
+  var temp = datestr.split("-");
+  if (temp[1] === "01") {
     temp[0] = parseInt(temp[0], 10) - 1;
-    temp[1] = '12';
+    temp[1] = "12";
   } else {
     temp[1] = parseInt(temp[1], 10) - 1;
   }
@@ -26,8 +26,8 @@ function getDate(datestr) {
  ***默认start<end
  **/
 function getDiffDate(start, end) {
-  var startTime = start;
-  var endTime = end;
+  var startTime = new Date(start);
+  var endTime = new Date(end);
   var dateArr = [];
   while (endTime.getTime() - startTime.getTime() > 0) {
     var year = startTime.getFullYear();
@@ -36,7 +36,7 @@ function getDiffDate(start, end) {
         ? parseInt(startTime.getMonth().toString(), 10) + 1
         : startTime.getMonth() + 1;
     var day = startTime.getDate();
-    dateArr.push({year, month, day});
+    dateArr.push({ year, month, day });
     startTime.setDate(startTime.getDate() + 1);
   }
   return dateArr;
@@ -52,14 +52,14 @@ function formatDate(date) {
   var y = date.getFullYear();
   var m =
     date.getMonth() + 1 < 10
-      ? '0' + (date.getMonth() + 1)
+      ? "0" + (date.getMonth() + 1)
       : date.getMonth() + 1;
-  var d = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+  var d = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
 
-  return y + '-' + m + '-' + d;
+  return y + "-" + m + "-" + d;
 }
 
-function isHistoryMonth({year, month}) {
+function isHistoryMonth({ year, month }) {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
