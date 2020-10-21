@@ -98,11 +98,12 @@ const AuntCalender = ({
       if (!lastPeriodStart) return [];
       const basePeriodStart = getBasePeriodStart();
       const monthDayNumbers = getDayNumbers(year, month);
-      const monthStartDate = new Date(year, month - 1, 1);
+      let monthStartDate = new Date(year, month - 1, 1);
+      monthStartDate = monthStartDate > today ? monthStartDate : today;
       const distanceWithStart = getDaysBetween(basePeriodStart, monthStartDate);
       // compute the cycle number and remainder during month.
       // debugger;
-      const sectionStart = distanceWithStart < 0 ? 0 : distanceWithStart;
+      const sectionStart = distanceWithStart;
       const sectionEnd = distanceWithStart + monthDayNumbers;
 
       const startRemainder = sectionStart % cycle;
@@ -113,7 +114,7 @@ const AuntCalender = ({
 
       const monthStartPeriod = collectMonthStartPeriod(
         startRemainder,
-        distanceWithStart < 0 ? today : monthStartDate
+        monthStartDate
       );
 
       const monthEndPeriod = collectMonthEndPeriod(
