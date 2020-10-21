@@ -29,6 +29,10 @@
   background-color: pink;
 }
 
+.calender .container .item.red {
+  background-color: rosybrown;
+}
+
 .calender .container .item-text {
   background-color: #eee;
   height: auto;

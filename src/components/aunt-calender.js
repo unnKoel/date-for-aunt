@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import Calender from "./calendar";
 import {
   getCurrentYear,
@@ -13,15 +13,34 @@ import {
 import { useEffect } from "react";
 
 const today = getCurrentDate();
+const todayYear = today.getFullYear();
+const todayMonth = today.getMonth() + 1;
+const todayDate = today.getDate();
 
 const AuntCalender = ({
-  lastPeriodStart,
-  duration = 7,
-  cycle = 28,
+  duration = 10,
+  cycle = 16,
   periods,
-  onHistoryMonth = () => {},
+  onMonthChange = () => {},
 }) => {
-  const [predictedPeriods, setPredictedPeriods] = useState([]);
+  const [allPeriods, setAllPeriods] = useState([]);
+  const lastPeriod = periods.length ? periods[periods.length - 1].group : [];
+
+  const getLastPeriodStart = useCallback(
+    (periods) => {
+      if (!periods.length) return undefined;
+
+      const { year, month, day } = lastPeriod[0];
+
+      return new Date(year, month - 1, day);
+    },
+    [lastPeriod]
+  );
+
+  const lastPeriodStart = useMemo(() => getLastPeriodStart(periods), [
+    getLastPeriodStart,
+    periods,
+  ]);
 
   const getBasePeriodStart = useCallback(() => {
     let basePeriodStart;
@@ -81,7 +100,7 @@ const AuntCalender = ({
         );
 
         for (let i = 1; i < distanceCycleAmount + 1; i++) {
-          periodStart = inOrdecreaseDate(periodStart, i * cycle);
+          periodStart = inOrdecreaseDate(periodStart, cycle);
           const periodEnd = inOrdecreaseDate(periodStart, duration);
           periods.push(getDiffDate(periodStart, periodEnd));
         }
@@ -90,6 +109,26 @@ const AuntCalender = ({
       return periods;
     },
     [cycle, duration]
+  );
+
+  // if today in lastPeriod, then cancel current predict
+  const cancelCurrentPredict = useCallback(
+    (basePeriodStart) => {
+      const predictEndDate = inOrdecreaseDate(basePeriodStart, duration);
+      if (!lastPeriod.length) return false;
+
+      const lastPeriodEnd = lastPeriod[lastPeriod.length - 1];
+
+      const { year, month, day } = lastPeriodEnd;
+      if (
+        today.getTime() < predictEndDate.getTime() &&
+        today.getTime() > basePeriodStart.getTime() &&
+        getDaysBetween(new Date(year, month - 1, day), today) >= 1
+      ) {
+        return true;
+      }
+    },
+    [duration, lastPeriod]
   );
 
   // prdict peroids with month.
@@ -130,11 +169,28 @@ const AuntCalender = ({
         startCycleAmount
       );
 
-      return [...duringMonethPeroids, monthStartPeriod, monthEndPeriod]
+      let predictPeroids = [
+        ...duringMonethPeroids,
+        monthStartPeriod,
+        monthEndPeriod,
+      ];
+
+      if (cancelCurrentPredict(basePeriodStart) && false) {
+        predictPeroids = predictPeroids.filter((period) => {
+          return !period.some(({ year, month, day }) => {
+            return (
+              year === todayYear && month === todayMonth && day === todayDate
+            );
+          });
+        });
+      }
+
+      return predictPeroids
         .filter((item) => !!item.length)
         .map((group) => ({ className: "pink", group }));
     },
     [
+      cancelCurrentPredict,
       collectDuringMonthPeriod,
       collectMonthEndPeriod,
       collectMonthStartPeriod,
@@ -143,6 +199,10 @@ const AuntCalender = ({
       lastPeriodStart,
     ]
   );
+
+  const combineWithPeriods = (predictedPeriods, periods) => {
+    return [...predictedPeriods, ...periods];
+  };
 
   const handleDaySelect = (no) => {
     console.log(no);
@@ -154,12 +214,12 @@ const AuntCalender = ({
     // other ways, then request real periods.
     if (!historyMonth) {
       const predictedPeriods = predictPeriods({ year, month });
-      console.log("predictedPeriods", predictedPeriods);
-      setPredictedPeriods(predictedPeriods);
-      return;
+      setAllPeriods(combineWithPeriods(predictedPeriods, periods));
+    } else {
+      setAllPeriods(combineWithPeriods([], periods));
     }
-    setPredictedPeriods([]);
-    onHistoryMonth({ year, month });
+
+    onMonthChange({ year, month });
   };
 
   useEffect(() => {
@@ -169,16 +229,17 @@ const AuntCalender = ({
       year: currentYear,
       month: currentMonth,
     });
-    console.log("predictedPeriods", predictedPeriods);
-    setPredictedPeriods(predictedPeriods);
-  }, [predictPeriods]);
+    setAllPeriods(combineWithPeriods(predictedPeriods, periods));
+  }, [periods, predictPeriods]);
+
+  console.log("allPeriods", allPeriods);
 
   return (
     <div className="App">
       <Calender
         onDaySelect={handleDaySelect}
         onMonthChange={handleMonthChange}
-        highlights={predictedPeriods}
+        highlights={allPeriods}
       />
     </div>
   );

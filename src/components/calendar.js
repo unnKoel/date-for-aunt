@@ -81,19 +81,20 @@ const CalenderBody = ({
   onDaySelect,
   highlights,
 }) => {
-  const calDayPostion = (day, group) => {
-    let position = "middle";
-    if (group[0]?.day === day) {
-      position = "start";
-    } else if (group[group.length - 1]?.day === day) {
-      position = "end";
-    }
+  // const calDayPostion = (day, group) => {
+  //   let position = "middle";
+  //   if (group[0]?.day === day) {
+  //     position = "start";
+  //   } else if (group[group.length - 1]?.day === day) {
+  //     position = "end";
+  //   }
 
-    return position;
-  };
+  //   return position;
+  // };
 
   const calDayStatus = useCallback(
     (day, highlights) => {
+      let dateItem = { no: day };
       for (let i = 0; i < highlights.length; i++) {
         const { group = [], className = "" } = highlights[i];
         if (
@@ -102,7 +103,7 @@ const CalenderBody = ({
               itemDay === day && itemYear === year && itemMonth === month
           )
         ) {
-          return {
+          dateItem = {
             no: day,
             className: className,
             // position: calDayPostion(day, group),
@@ -110,9 +111,7 @@ const CalenderBody = ({
         }
       }
 
-      return {
-        no: day,
-      };
+      return dateItem;
     },
     [year, month]
   );
