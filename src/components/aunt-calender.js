@@ -18,9 +18,10 @@ const todayMonth = today.getMonth() + 1;
 const todayDate = today.getDate();
 
 const AuntCalender = ({
-  duration = 10,
-  cycle = 16,
+  duration = 5,
+  cycle = 28,
   periods,
+  onDaySelect,
   onMonthChange = () => {},
 }) => {
   const [allPeriods, setAllPeriods] = useState([]);
@@ -175,7 +176,7 @@ const AuntCalender = ({
         monthEndPeriod,
       ];
 
-      if (cancelCurrentPredict(basePeriodStart) && false) {
+      if (cancelCurrentPredict(basePeriodStart)) {
         predictPeroids = predictPeroids.filter((period) => {
           return !period.some(({ year, month, day }) => {
             return (
@@ -202,10 +203,6 @@ const AuntCalender = ({
 
   const combineWithPeriods = (predictedPeriods, periods) => {
     return [...predictedPeriods, ...periods];
-  };
-
-  const handleDaySelect = (no) => {
-    console.log(no);
   };
 
   const handleMonthChange = ({ year, month }) => {
@@ -237,7 +234,7 @@ const AuntCalender = ({
   return (
     <div className="App">
       <Calender
-        onDaySelect={handleDaySelect}
+        onDaySelect={onDaySelect}
         onMonthChange={handleMonthChange}
         highlights={allPeriods}
       />

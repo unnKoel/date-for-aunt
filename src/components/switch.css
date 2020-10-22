@@ -1,0 +1,21 @@
+.switch {
+  display: flex;
+  width: 100px;
+  height: 40px;
+  background-color: #ccc;
+  border-radius: 10px;
+}
+
+.switch .item.bright {
+  background-color: rosybrown;
+}
+
+.switch .item {
+  cursor: pointer;
+  height: 40px;
+  line-height: 40px;
+  width: 50px;
+  text-align: center;
+  border-radius: 10px;
+  color: #fff;
+}

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import data from "./mock";
 import "./App.css";
+import Switch from "./components/switch";
 import { getDayNumbers, getDaysBetween } from "./utils";
 import AuntCalender from "./components/aunt-calender";
 
@@ -66,7 +67,23 @@ function App() {
     console.log(year, month);
   };
 
-  return <AuntCalender periods={periods} onMonthChange={handleMonthChange} />;
+  const handleDaySelect = (no) => {
+    console.log(no);
+  };
+
+  return (
+    <div>
+      <AuntCalender
+        periods={periods}
+        onMonthChange={handleMonthChange}
+        onDaySelect={handleDaySelect}
+      />
+      <div className="bar">
+        <p>大姨妈走喽</p>
+        <Switch />
+      </div>
+    </div>
+  );
 }
 
 export default App;
