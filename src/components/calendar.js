@@ -142,7 +142,7 @@ const CalenderBody = ({
 
   const handleDayClick = (no) => (e) => {
     if (no) {
-      onDaySelect(no);
+      onDaySelect({ year, month, day: no });
     }
   };
 

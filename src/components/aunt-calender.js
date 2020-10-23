@@ -20,10 +20,27 @@ const todayDate = today.getDate();
 const AuntCalender = ({
   duration = 5,
   cycle = 28,
-  periods,
+  periods: fperiods,
   onDaySelect,
   onMonthChange = () => {},
 }) => {
+  const periods = useMemo(
+    () =>
+      fperiods.map((period) => {
+        return {
+          className: "red",
+          group:
+            period.length === 2
+              ? getDiffDate(
+                  new Date(period[0].year, period[0].month, period[0].day),
+                  new Date(period[1].year, period[1].month, period[1].day)
+                )
+              : period,
+        };
+      }),
+    [fperiods]
+  );
+
   const [allPeriods, setAllPeriods] = useState([]);
   const lastPeriod = periods.length ? periods[periods.length - 1].group : [];
 

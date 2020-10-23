@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import data from "./mock";
 import "./App.css";
 import Switch from "./components/switch";
+import usePersistedState from "./use-persisted-state";
 import { getDayNumbers, getDaysBetween } from "./utils";
 import AuntCalender from "./components/aunt-calender";
 
 function App() {
-  const [periods, setPeriods] = useState([]);
+  const [periods, setPeriods] = usePersistedState([], "periods");
 
   const filterRecords = () => {
     const records = [];
@@ -40,7 +41,7 @@ function App() {
           new Date(next.year, next.month - 1, next.day)
         ) === 1
       ) {
-        period.push(prev);
+        !period.length && period.push(prev);
         j++;
         prev = records[j];
         next = records[j + 1];
@@ -56,8 +57,9 @@ function App() {
   const getPeriods = useCallback(() => {
     const records = filterRecords();
     const periods = createSection(records);
-    setPeriods(periods.map((period) => ({ className: "red", group: period })));
-  }, []);
+    setPeriods(periods);
+    // setPeriods(periods.map((period) => ({ className: "red", group: period })));
+  }, [setPeriods]);
 
   useEffect(() => {
     getPeriods();
